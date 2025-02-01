@@ -8,6 +8,14 @@ import widgets from "widgets/widgets";
 
 const logger = createLogger("credentialedProxyHandler");
 
+function getBasicAuth(widget) {
+  return `Basic ${Buffer.from(`${widget.username}:${widget.password}`).toString("base64")}`;
+}
+
+function getBearerAuth(widget) {
+  return `Bearer ${widget.key}`;
+}
+
 export default async function credentialedProxyHandler(req, res, map) {
   const { group, service, endpoint, index } = req.query;
 
@@ -25,7 +33,11 @@ export default async function credentialedProxyHandler(req, res, map) {
         "Content-Type": "application/json",
       };
 
-      if (widget.type === "stocks") {
+      if (widget.auth === "basic") {
+        headers.Authorization = getBasicAuth(widget);
+      } else if (widget.auth === "bearer") {
+        headers.Authorization = getBearerAuth(widget);
+      } else if (widget.type === "stocks") {
         const { providers } = getSettings();
         if (widget.provider === "finnhub" && providers?.finnhub) {
           headers["X-Finnhub-Token"] = `${providers?.finnhub}`;
@@ -53,12 +65,12 @@ export default async function credentialedProxyHandler(req, res, map) {
           "firefly",
         ].includes(widget.type)
       ) {
-        headers.Authorization = `Bearer ${widget.key}`;
+        headers.Authorization = getBearerAuth(widget);
       } else if (widget.type === "truenas") {
         if (widget.key) {
-          headers.Authorization = `Bearer ${widget.key}`;
+          headers.Authorization = getBearerAuth(widget);
         } else {
-          headers.Authorization = `Basic ${Buffer.from(`${widget.username}:${widget.password}`).toString("base64")}`;
+          headers.Authorization = getBasicAuth(widget);
         }
       } else if (widget.type === "proxmox") {
         headers.Authorization = `PVEAPIToken=${widget.username}=${widget.password}`;
@@ -75,25 +87,25 @@ export default async function credentialedProxyHandler(req, res, map) {
         if (widget.key) {
           headers["NC-Token"] = `${widget.key}`;
         } else {
-          headers.Authorization = `Basic ${Buffer.from(`${widget.username}:${widget.password}`).toString("base64")}`;
+          headers.Authorization = getBasicAuth(widget);
         }
       } else if (widget.type === "paperlessngx") {
         if (widget.key) {
           headers.Authorization = `Token ${widget.key}`;
         } else {
-          headers.Authorization = `Basic ${Buffer.from(`${widget.username}:${widget.password}`).toString("base64")}`;
+          headers.Authorization = getBasicAuth(widget);
         }
       } else if (widget.type === "azuredevops") {
         headers.Authorization = `Basic ${Buffer.from(`$:${widget.key}`).toString("base64")}`;
       } else if (widget.type === "glances") {
-        headers.Authorization = `Basic ${Buffer.from(`${widget.username}:${widget.password}`).toString("base64")}`;
+        headers.Authorization = getBasicAuth(widget);
       } else if (widget.type === "plantit") {
         headers.Key = `${widget.key}`;
       } else if (widget.type === "myspeed") {
         headers.Password = `${widget.password}`;
       } else if (widget.type === "esphome") {
         if (widget.username && widget.password) {
-          headers.Authorization = `Basic ${Buffer.from(`${widget.username}:${widget.password}`).toString("base64")}`;
+          headers.Authorization = getBasicAuth(widget);
         } else if (widget.key) {
           headers.Cookie = `authenticated=${widget.key}`;
         }

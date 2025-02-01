@@ -58,20 +58,21 @@ export async function getPrivateWidgetOptions(type, widgetIndex) {
 
   const privateOptions =
     widgets.map((widget) => {
-      const { index, url, username, password, key, apiKey } = widget.options;
+      const { index, url, username, password, key, apiKey, auth } = widget.options;
 
-      return {
-        type: widget.type,
-        options: {
-          index,
-          url,
-          username,
-          password,
-          key,
-          apiKey,
-        },
-      };
-    }) || {};
+    return {
+      type: widget.type,
+      options: {
+        index,
+        url,
+        username,
+        password,
+        key,
+        apiKey,
+        auth,
+      },
+    };
+  })|| {};
 
   return type !== undefined && widgetIndex !== undefined
     ? privateOptions.find((o) => o.type === type && o.options.index === parseInt(widgetIndex, 10))?.options
